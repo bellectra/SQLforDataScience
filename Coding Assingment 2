@@ -1,0 +1,105 @@
+-- All of the questions in this quiz refer to the open source Chinook Database. Please familiarize yourself with the ER diagram (https://ucde-rey.s3.amazonaws.com/DSV1015/ChinookDatabaseSchema.png) to familiarize yourself with the table and column names to write accurate queries and get the appropriate answers.
+
+-- 1. Run Query: Find all the tracks that have a length of 5,000,000 milliseconds or more.
+
+SELECT TrackID
+,Name
+,Milliseconds
+FROM Tracks
+WHERE Milliseconds >= '5000000';
+
+-- 2. Run Query: Find all the invoices whose total is between $5 and $15 dollars.
+
+SELECT InvoiceID
+,Total
+FROM Invoices
+WHERE Total BETWEEN 5 and 15;
+
+-- 3. Run Query: Find all the customers from the following States: RJ, DF, AB, BC, CA, WA, NY.
+
+-- Original code:
+
+Select FirstName
+,LastName
+,State
+,Company
+FROM Customers
+WHERE (State = 'RJ' OR 
+State = 'DF' OR 
+State = 'AB' OR 
+State = 'BC' OR 
+State = 'CA' OR 
+State = 'CA' OR
+State = 'WA' OR
+State = 'NY');
+
+-- Modified & simplified code:
+
+SELECT FirstName
+,LastName
+,State
+,Company
+FROM Customers
+WHERE State IN ('RJ', 'DF', 'AB', 'BC', 'CA', 'WA', 'NY');
+
+-- This change simplifies the code & makes better use of the WHERE & IN for this question rather than using an elongated WHERE & multiple OR statements.
+
+-- 4. Run Query: Find all the invoices for customer 56 and 58 where the total was between $1.00 and $5.00.
+
+SELECT InvoiceID
+,CustomerID
+,InvoiceDate
+,Total
+FROM Invoices
+WHERE (Total BETWEEN 1 and 5)
+AND (CustomerID = 56 OR CustomerID = 58);
+
+-- 5. Run Query: Find all the tracks whose name starts with 'All'.
+
+SELECT TrackId
+,Name
+FROM Tracks
+WHERE Name LIKE 'All%';
+
+-- 6. Run Query: Find all the customer emails that start with "J" and are from gmail.com.
+
+SELECT Email
+FROM Customers
+WHERE email LIKE 'J%@gmail.com';
+
+-- 7. Run Query: Find all the invoices from the billing city Brasília, Edmonton, and Vancouver and sort in descending order by invoice ID.
+
+-- Original Code:
+
+SELECT InvoiceID
+,BillingCity
+,total
+FROM Invoices
+WHERE (BillingCity = 'Brasília' OR BillingCity = 'Edmonton' OR BillingCity = 'Vancouver')
+ORDER BY 1 Desc;
+
+-- Modified code:
+
+SELECT InvoiceID
+,BillingCity
+,total
+FROM Invoices
+WHERE BillingCity IN ('Brasília', 'Edmonton', 'Vancouver');
+
+-- Modified code using WHERE/IN instead of WHERE/OR
+
+-- 8. Run Query: Show the number of orders placed by each customer (hint: this is found in the invoices table) and sort the result by the number of orders in descending order.
+
+SELECT CustomerID
+,COUNT(InvoiceID) as Invoices_Per_Customer
+FROM Invoices
+GROUP BY CustomerID
+ORDER By COUNT(InvoiceID) DESC;
+
+-- 9. Run Query: Find the albums with 12 or more tracks.
+
+SELECT AlbumId
+,TrackID
+FROM Tracks
+GROUP BY AlbumId
+HAVING COUNT(DISTINCT TrackId) >= 12;
