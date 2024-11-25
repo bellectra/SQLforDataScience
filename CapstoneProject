@@ -1,0 +1,113 @@
+/*Scenario: 
+
+Data Scientist at USDA (United States Department of Agriculture)
+
+Context: 
+
+You are a Data Scientist working at the USDA. Your department has been tracking the production of various agricultural commodities across different states. 
+
+Your datasets include:
+
+`milk_production`, `cheese_production`, `coffee_production`, `honey_production`, `yogurt_production`, and a `state_lookup` table. 
+
+The data spans multiple years and states, with varying levels of production for each commodity.
+
+Your manager has requested that you generate insights from this data to aid in future planning and decision-making. You'll need to use SQL queries to answer the questions that come up in meetings, reports, or strategic discussions.
+
+Objectives:
+
+Assess state-by-state production for each commodity.
+
+Identify trends or anomalies.
+
+Offer data-backed suggestions for areas that may need more attention.
+
+
+NOTE: All answer entries are numeric and only numbers and periods. The autograder does not accept commas for the final project.*/
+
+-- Question 1. Can you find out the total milk production for 2023? Your manager wants this information for the yearly report. What is the total milk production for 2023? Answer: 91812000000
+
+SELECT SUM(Value)
+FROM milk_production mp 
+WHERE "Year" = 2023;
+
+-- Which states had cheese production greater than 100 million in April 2023? The Cheese Department wants to focus their marketing efforts there. How many states are there? Answer: 14
+
+SELECT COUNT(DISTINCT cp.State_ANSI) as state_count
+FROM cheese_production cp 
+WHERE Value > 100000 AND Period = "APR" AND "Year" = 2023;
+
+-- Your manager wants to know how coffee production has changed over the years. What is the total value of coffee production for 2011? Answer: 7600000
+
+SELECT sum(Value)
+FROM coffee_production cp 
+WHERE "Year" = 2011;
+
+
+-- There's a meeting with the Honey Council next week. Find the average honey production for 2022 so you're prepared. Answer: 3133275
+
+SELECT AVG(Value)
+FROM honey_production hp 
+WHERE "Year" = 2022;
+
+-- The State Relations team wants a list of all states names with their corresponding ANSI codes. Can you generate that list? What is the State_ANSI code for Florida? Answer: 12
+
+SELECT State_ANSI
+FROM state_lookup sl 
+WHERE State LIKE 'Florida';
+
+
+-- For a cross-commodity report, can you list all states with their cheese production values, even if they didn't produce any cheese in April of 2023? What is the total for NEW JERSEY? Answer: 0
+
+-- All States:
+SELECT sl.state, COALESCE(SUM(cp.Value),0) AS cheese_production
+FROM state_lookup sl 
+LEFT JOIN cheese_production cp ON sl.State_ANSI = cp.State_ANSI
+AND cp."Year" = 2023 AND cp.Period = 'Apr'
+GROUP BY sl.State;
+
+-- New Jersey:
+SELECT COALESCE(SUM(cp.Value),0) AS total_cheese_production
+FROM cheese_production cp 
+JOIN state_lookup sl ON sl.State_ANSI = cp.State_ANSI 
+WHERE sl.State = 'New Jersey' AND cp.Period = 'Apr' AND cp."Year" = 2023;
+
+-- Can you find the total yogurt production for states in the year 2022 which also have cheese production data from 2023? This will help the Dairy Division in their planning. Answer: 1171095000
+
+SELECT SUM(Value)
+FROM yogurt_production yp 
+WHERE yp.State_ANSI IN (
+	SELECT DISTINCT cp.State_ANSI
+	FROM cheese_production cp 
+	WHERE cp.year = 2023
+	)
+	AND yp."Year" = 2022;
+
+
+-- List all states from state_lookup that are missing from milk_production in 2023. How many states are there? Answer: 26
+
+SELECT COUNT(DISTINCT sl.State_ANSI)
+FROM state_lookup sl 
+WHERE sl.State_ANSI NOT IN (
+	SELECT DISTINCT mp.State_ANSI
+	FROM milk_production mp 
+	WHERE mp."Year" = 2023
+	);
+
+
+-- List all states with their cheese production values, including states that didn't produce any cheese in April 2023. Did Delaware produce any cheese in April 2023? Answer: No
+
+SELECT sl.State, cp.Value
+FROM cheese_production cp 
+JOIN state_lookup sl ON sl.State_ANSI = cp.State_ANSI
+WHERE sl.State LIKE 'Delaware' AND cp.Period = 'Apr';
+
+-- Find the average coffee production for all years where the honey production exceeded 1 million. Answer: 6426666.666666667
+
+SELECT AVG(cp.Value) AS total_coffee_production
+FROM coffee_production cp 
+WHERE cp."Year" IN (
+	SELECT DISTINCT hp."Year"
+	FROM honey_production hp 
+	WHERE hp.Value > 1000000
+	);
